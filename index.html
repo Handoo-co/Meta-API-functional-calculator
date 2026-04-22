@@ -11,210 +11,263 @@
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
         .card-bg { background-color: #1e293b; border: 1px solid #334155; }
         input[type="range"] { accent-color: #3b82f6; cursor: pointer; }
-        #donut-container { position: relative; width: 100%; height: 220px; }
+        #donut-container { position: relative; width: 100%; height: 230px; }
+
+        .cat-block { border-radius: 1rem; padding: 1rem; border: 1px solid; }
+        .cat-mkt   { background: rgba(239,68,68,0.07);  border-color: rgba(239,68,68,0.25); }
+        .cat-util  { background: rgba(168,85,247,0.07); border-color: rgba(168,85,247,0.25); }
+        .cat-auth  { background: rgba(251,191,36,0.07); border-color: rgba(251,191,36,0.25); }
+        .cat-svc   { background: rgba(16,185,129,0.07); border-color: rgba(16,185,129,0.25); }
+
+        .badge { display:inline-block; font-size:9px; font-weight:700; letter-spacing:.08em;
+                 padding:2px 7px; border-radius:99px; text-transform:uppercase; }
+        .badge-mkt  { background:rgba(239,68,68,0.15);  color:#f87171; }
+        .badge-util { background:rgba(168,85,247,0.15); color:#c084fc; }
+        .badge-auth { background:rgba(251,191,36,0.15); color:#fbbf24; }
+        .badge-svc  { background:rgba(16,185,129,0.15); color:#34d399; }
     </style>
 </head>
 <body class="p-4 md:p-8 flex flex-col items-center justify-center min-h-screen">
 
-    <div class="max-w-5xl w-full card-bg rounded-3xl p-6 shadow-2xl border border-slate-700/50">
+<div class="max-w-5xl w-full card-bg rounded-3xl p-6 shadow-2xl border border-slate-700/50">
 
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Handoo: Calculadora Meta API</h1>
-            <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Costo operativo mensual · WhatsApp Business API</p>
-            <p class="text-slate-300 text-sm mt-3 max-w-2xl">Ajusta cuántas personas recibirán mensajes este mes y cuántas campañas enviarás. El costo se calcula en tiempo real según las tarifas de Meta.</p>
+    <!-- Header -->
+    <div class="mb-7">
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Handoo: Calculadora Meta API</h1>
+        <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Costo operativo mensual · WhatsApp Business API</p>
+        <p class="text-slate-300 text-sm mt-3 max-w-2xl">Ingresa el volumen de conversaciones por categoría. El costo se calcula con las tarifas reales de Meta para Colombia.</p>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-800 text-center">
+            <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-1">Total Conversaciones</p>
+            <p class="text-white text-2xl font-bold" id="kpi-total-conv">0</p>
+            <p class="text-slate-500 text-[10px] mt-1">este mes</p>
         </div>
-
-        <!-- KPIs principales -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-800 text-center">
-                <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-1">Conv. Marketing</p>
-                <p class="text-cyan-400 text-2xl font-bold" id="kpi-conv-mkt">0</p>
-                <p class="text-slate-500 text-[10px] mt-1">personas × campañas</p>
-            </div>
-            <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-800 text-center">
-                <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-1">Conv. Servicio</p>
-                <p class="text-emerald-400 text-2xl font-bold" id="kpi-conv-svc">0</p>
-                <p class="text-slate-500 text-[10px] mt-1">respuestas estimadas</p>
-            </div>
-            <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-800 text-center">
-                <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-1">Costo Total Mes</p>
-                <p class="text-white text-2xl font-bold" id="kpi-usd">$0.00</p>
-                <p class="text-slate-500 text-[10px] mt-1">USD</p>
-            </div>
-            <div class="bg-rose-900/20 rounded-2xl p-4 border border-rose-500/30 text-center">
-                <p class="text-rose-400 text-[10px] uppercase tracking-widest mb-1">Costo Total Mes</p>
-                <p class="text-rose-400 text-2xl font-bold" id="kpi-cop">$0</p>
-                <p class="text-slate-500 text-[10px] mt-1">COP (TRM $4.100)</p>
-            </div>
+        <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-800 text-center">
+            <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-1">Conv. Gratuitas</p>
+            <p class="text-emerald-400 text-2xl font-bold" id="kpi-free">0</p>
+            <p class="text-slate-500 text-[10px] mt-1">servicio (primeras 1.000)</p>
         </div>
-
-        <!-- Gráfica + controles -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-
-            <!-- Dona -->
-            <div class="bg-slate-900/50 rounded-2xl border border-slate-800 p-5">
-                <h2 class="text-sm font-semibold text-slate-300 mb-3">Desglose del costo</h2>
-                <div id="donut-container">
-                    <canvas id="compositionChart"></canvas>
-                </div>
-                <div class="mt-4 grid grid-cols-2 gap-2 text-xs text-center">
-                    <div class="bg-cyan-500/10 rounded-xl p-2">
-                        <p class="text-slate-400">Costo Marketing</p>
-                        <p class="text-cyan-400 font-bold text-sm" id="detalle-mkt">$0.00 USD</p>
-                    </div>
-                    <div class="bg-emerald-500/10 rounded-xl p-2">
-                        <p class="text-slate-400">Costo Servicio</p>
-                        <p class="text-emerald-400 font-bold text-sm" id="detalle-svc">$0.00 USD</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sliders -->
-            <div class="space-y-5 bg-slate-900/50 rounded-2xl border border-slate-800 p-5">
-                <h2 class="text-sm font-semibold text-slate-300 mb-1">Parámetros del mes</h2>
-
-                <div>
-                    <div class="flex justify-between mb-1 text-xs">
-                        <label class="text-slate-300">Personas a contactar</label>
-                        <span class="font-bold text-cyan-400" id="label-personas">1.000</span>
-                    </div>
-                    <input type="range" id="personas" min="100" max="50000" step="100" value="1000" class="w-full">
-                    <div class="flex justify-between text-[10px] text-slate-600 mt-1"><span>100</span><span>50.000</span></div>
-                </div>
-
-                <div>
-                    <div class="flex justify-between mb-1 text-xs">
-                        <label class="text-slate-300">Campañas de marketing en el mes</label>
-                        <span class="font-bold text-cyan-400" id="label-campanas">2</span>
-                    </div>
-                    <input type="range" id="campanas" min="1" max="12" step="1" value="2" class="w-full">
-                    <div class="flex justify-between text-[10px] text-slate-600 mt-1"><span>1</span><span>12</span></div>
-                </div>
-
-                <div>
-                    <div class="flex justify-between mb-1 text-xs">
-                        <label class="text-slate-300">Tasa de respuesta esperada</label>
-                        <span class="font-bold text-emerald-400" id="label-respuesta">25%</span>
-                    </div>
-                    <input type="range" id="respuesta" min="5" max="95" step="5" value="25" class="w-full">
-                    <div class="flex justify-between text-[10px] text-slate-600 mt-1"><span>5%</span><span>95%</span></div>
-                </div>
-
-                <div class="border-t border-slate-700 pt-4 space-y-3">
-                    <p class="text-[10px] text-slate-500 uppercase tracking-widest">Tarifas Meta (USD por conversación)</p>
-                    <div>
-                        <div class="flex justify-between mb-1 text-xs">
-                            <label class="text-slate-300">Marketing / conversación</label>
-                            <span class="font-bold text-rose-400">$<span id="label-mkt">0.05</span></span>
-                        </div>
-                        <input type="range" id="costoMkt" min="0.01" max="0.15" step="0.01" value="0.05" class="w-full">
-                    </div>
-                    <div>
-                        <div class="flex justify-between mb-1 text-xs">
-                            <label class="text-slate-300">Servicio / conversación</label>
-                            <span class="font-bold text-rose-400">$<span id="label-svc">0.02</span></span>
-                        </div>
-                        <input type="range" id="costoSvc" min="0.01" max="0.10" step="0.01" value="0.02" class="w-full">
-                    </div>
-                </div>
-            </div>
+        <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-800 text-center">
+            <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-1">Costo Total Mes</p>
+            <p class="text-white text-2xl font-bold" id="kpi-usd">$0.00</p>
+            <p class="text-slate-500 text-[10px] mt-1">USD</p>
         </div>
-
-        <!-- Nota explicativa -->
-        <div class="bg-blue-900/10 border border-blue-500/20 rounded-2xl p-4 text-xs text-slate-300 leading-relaxed">
-            <p><strong class="text-blue-400">¿Cómo se calcula?</strong> Meta cobra por conversación iniciada, no por mensaje individual.</p>
-            <p class="mt-1">→ <strong>Conversaciones de marketing</strong> = personas contactadas × número de campañas del mes.</p>
-            <p class="mt-1">→ <strong>Conversaciones de servicio</strong> = conversaciones de marketing × tasa de respuesta (cuando el cliente responde, se abre una ventana de 24h cobrada aparte).</p>
+        <div class="bg-rose-900/20 rounded-2xl p-4 border border-rose-500/30 text-center">
+            <p class="text-rose-400 text-[10px] uppercase tracking-widest mb-1">Costo Total Mes</p>
+            <p class="text-rose-400 text-2xl font-bold" id="kpi-cop">$0</p>
+            <p class="text-slate-500 text-[10px] mt-1">COP · TRM $4.100</p>
         </div>
     </div>
 
-    <footer class="mt-8 text-center text-slate-500 text-[10px] uppercase tracking-[0.2em] font-semibold">
-        <p>&copy; 2026 Handoo AI · <span class="text-slate-400">Desarrollado por Miguel Riveros</span></p>
-    </footer>
+    <!-- Categorías + Dona -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-7">
 
-    <script>
-        const TRM = 4100;
-        let donutChart = null;
+        <!-- Sliders por categoría -->
+        <div class="space-y-4">
+            <h2 class="text-sm font-semibold text-slate-300">Volumen por categoría</h2>
 
-        function fmt(n) { return n.toLocaleString('es-CO'); }
+            <!-- Marketing -->
+            <div class="cat-block cat-mkt">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <span class="badge badge-mkt">Marketing</span>
+                        <span class="text-red-400 font-bold text-sm ml-2">$0.038 <span class="text-slate-500 font-normal text-[10px]">/ conv.</span></span>
+                    </div>
+                    <span class="text-red-300 font-bold" id="lbl-mkt">1.000</span>
+                </div>
+                <input type="range" id="vol-mkt" min="0" max="20000" step="100" value="1000" class="w-full">
+                <p class="text-[10px] text-slate-500 mt-1">La más cara. Solo campañas de alta conversión.</p>
+                <p class="text-red-400 text-xs font-semibold mt-1" id="cost-mkt">$0.00 USD</p>
+            </div>
 
-        function update() {
-            const personas  = parseInt(document.getElementById('personas').value);
-            const campanas  = parseInt(document.getElementById('campanas').value);
-            const respuesta = parseFloat(document.getElementById('respuesta').value) / 100;
-            const costoMkt  = parseFloat(document.getElementById('costoMkt').value);
-            const costoSvc  = parseFloat(document.getElementById('costoSvc').value);
+            <!-- Utilidad -->
+            <div class="cat-block cat-util">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <span class="badge badge-util">Utilidad</span>
+                        <span class="text-purple-400 font-bold text-sm ml-2">$0.025 <span class="text-slate-500 font-normal text-[10px]">/ conv.</span></span>
+                    </div>
+                    <span class="text-purple-300 font-bold" id="lbl-util">500</span>
+                </div>
+                <input type="range" id="vol-util" min="0" max="20000" step="100" value="500" class="w-full">
+                <p class="text-[10px] text-slate-500 mt-1">Recordatorios de citas, estados de cuenta.</p>
+                <p class="text-purple-400 text-xs font-semibold mt-1" id="cost-util">$0.00 USD</p>
+            </div>
 
-            // Labels
-            document.getElementById('label-personas').innerText  = fmt(personas);
-            document.getElementById('label-campanas').innerText  = campanas;
-            document.getElementById('label-respuesta').innerText = (respuesta * 100).toFixed(0) + '%';
-            document.getElementById('label-mkt').innerText       = costoMkt.toFixed(2);
-            document.getElementById('label-svc').innerText       = costoSvc.toFixed(2);
+            <!-- Autenticación -->
+            <div class="cat-block cat-auth">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <span class="badge badge-auth">Autenticación</span>
+                        <span class="text-yellow-400 font-bold text-sm ml-2">$0.020 <span class="text-slate-500 font-normal text-[10px]">/ conv.</span></span>
+                    </div>
+                    <span class="text-yellow-300 font-bold" id="lbl-auth">0</span>
+                </div>
+                <input type="range" id="vol-auth" min="0" max="20000" step="100" value="0" class="w-full">
+                <p class="text-[10px] text-slate-500 mt-1">OTPs y validación de acceso.</p>
+                <p class="text-yellow-400 text-xs font-semibold mt-1" id="cost-auth">$0.00 USD</p>
+            </div>
 
-            // Cálculos
-            const convMkt = personas * campanas;
-            const convSvc = Math.round(convMkt * respuesta);
-            const costMkt = convMkt * costoMkt;
-            const costSvc = convSvc * costoSvc;
-            const total   = costMkt + costSvc;
+            <!-- Servicio -->
+            <div class="cat-block cat-svc">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <span class="badge badge-svc">Servicio</span>
+                        <span class="text-emerald-400 font-bold text-sm ml-2">$0.015 <span class="text-slate-500 font-normal text-[10px]">/ conv.</span></span>
+                    </div>
+                    <span class="text-emerald-300 font-bold" id="lbl-svc">200</span>
+                </div>
+                <input type="range" id="vol-svc" min="0" max="20000" step="100" value="200" class="w-full">
+                <p class="text-[10px] text-slate-500 mt-1">Primeras <strong class="text-emerald-500">1.000 gratuitas</strong> al mes. El resto se cobra.</p>
+                <p class="text-emerald-400 text-xs font-semibold mt-1" id="cost-svc">$0.00 USD</p>
+            </div>
+        </div>
 
-            // KPIs
-            document.getElementById('kpi-conv-mkt').innerText = fmt(convMkt);
-            document.getElementById('kpi-conv-svc').innerText = fmt(convSvc);
-            document.getElementById('kpi-usd').innerText      = '$ ' + total.toFixed(2);
-            document.getElementById('kpi-cop').innerText      = '$ ' + fmt(Math.round(total * TRM));
-            document.getElementById('detalle-mkt').innerText  = '$ ' + costMkt.toFixed(2) + ' USD';
-            document.getElementById('detalle-svc').innerText  = '$ ' + costSvc.toFixed(2) + ' USD';
+        <!-- Dona -->
+        <div class="bg-slate-900/50 rounded-2xl border border-slate-800 p-5 flex flex-col">
+            <h2 class="text-sm font-semibold text-slate-300 mb-3">Desglose del costo (USD)</h2>
+            <div id="donut-container" class="flex-1">
+                <canvas id="compositionChart"></canvas>
+            </div>
+            <div class="mt-4 grid grid-cols-2 gap-2 text-[11px]">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-400 shrink-0"></span>
+                    <span class="text-slate-400">Marketing</span>
+                    <span class="ml-auto text-red-400 font-bold" id="pie-mkt">$0.00</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-400 shrink-0"></span>
+                    <span class="text-slate-400">Utilidad</span>
+                    <span class="ml-auto text-purple-400 font-bold" id="pie-util">$0.00</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 shrink-0"></span>
+                    <span class="text-slate-400">Autenticación</span>
+                    <span class="ml-auto text-yellow-400 font-bold" id="pie-auth">$0.00</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
+                    <span class="text-slate-400">Servicio</span>
+                    <span class="ml-auto text-emerald-400 font-bold" id="pie-svc">$0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            updateDonut(costMkt, costSvc);
+    <!-- Nota -->
+    <div class="bg-blue-900/10 border border-blue-500/20 rounded-2xl p-4 text-xs text-slate-300 leading-relaxed">
+        <p><strong class="text-blue-400">¿Cómo funciona el cobro de Meta?</strong> Cada conversación iniciada (no cada mensaje) genera un cargo según su categoría. Las primeras 1.000 conversaciones de <strong>Servicio</strong> de cada mes son gratuitas — el resto se cobra a $0.015 USD.</p>
+    </div>
+</div>
+
+<footer class="mt-8 text-center text-slate-500 text-[10px] uppercase tracking-[0.2em] font-semibold">
+    <p>&copy; 2026 Handoo AI · <span class="text-slate-400">Desarrollado por Miguel Riveros</span></p>
+</footer>
+
+<script>
+    const TRM = 4100;
+    const PRICES = { mkt: 0.038, util: 0.025, auth: 0.020, svc: 0.015 };
+    const FREE_SVC = 1000;
+    let donutChart = null;
+
+    function fmt(n)   { return Math.round(n).toLocaleString('es-CO'); }
+    function usd(n)   { return '$ ' + n.toFixed(2) + ' USD'; }
+    function usdS(n)  { return '$' + n.toFixed(2); }
+
+    function update() {
+        const volMkt  = parseInt(document.getElementById('vol-mkt').value);
+        const volUtil = parseInt(document.getElementById('vol-util').value);
+        const volAuth = parseInt(document.getElementById('vol-auth').value);
+        const volSvc  = parseInt(document.getElementById('vol-svc').value);
+
+        // Labels de sliders
+        document.getElementById('lbl-mkt').innerText  = fmt(volMkt);
+        document.getElementById('lbl-util').innerText = fmt(volUtil);
+        document.getElementById('lbl-auth').innerText = fmt(volAuth);
+        document.getElementById('lbl-svc').innerText  = fmt(volSvc);
+
+        // Costos individuales (servicio: primeras 1000 gratis)
+        const cMkt  = volMkt  * PRICES.mkt;
+        const cUtil = volUtil * PRICES.util;
+        const cAuth = volAuth * PRICES.auth;
+        const billableSvc = Math.max(0, volSvc - FREE_SVC);
+        const cSvc  = billableSvc * PRICES.svc;
+        const total = cMkt + cUtil + cAuth + cSvc;
+        const freeUsed = Math.min(volSvc, FREE_SVC);
+
+        // Labels de costo por categoría
+        document.getElementById('cost-mkt').innerText  = usd(cMkt);
+        document.getElementById('cost-util').innerText = usd(cUtil);
+        document.getElementById('cost-auth').innerText = usd(cAuth);
+        document.getElementById('cost-svc').innerText  = volSvc <= FREE_SVC
+            ? '¡Gratis! (dentro de las 1.000 incluidas)'
+            : usd(cSvc) + ' (' + fmt(billableSvc) + ' conv. facturables)';
+
+        // KPIs
+        document.getElementById('kpi-total-conv').innerText = fmt(volMkt + volUtil + volAuth + volSvc);
+        document.getElementById('kpi-free').innerText       = fmt(freeUsed) + ' / 1.000';
+        document.getElementById('kpi-usd').innerText        = usd(total);
+        document.getElementById('kpi-cop').innerText        = '$ ' + fmt(Math.round(total * TRM));
+
+        // Leyenda dona
+        document.getElementById('pie-mkt').innerText  = usdS(cMkt);
+        document.getElementById('pie-util').innerText = usdS(cUtil);
+        document.getElementById('pie-auth').innerText = usdS(cAuth);
+        document.getElementById('pie-svc').innerText  = usdS(cSvc);
+
+        updateDonut(cMkt, cUtil, cAuth, cSvc);
+    }
+
+    function updateDonut(cMkt, cUtil, cAuth, cSvc) {
+        const ctx = document.getElementById('compositionChart').getContext('2d');
+        const data = [cMkt, cUtil, cAuth, cSvc];
+
+        if (donutChart) {
+            donutChart.data.datasets[0].data = data;
+            donutChart.update('none');
+            return;
         }
 
-        function updateDonut(costMkt, costSvc) {
-            const ctx = document.getElementById('compositionChart').getContext('2d');
-
-            if (donutChart) {
-                donutChart.data.datasets[0].data = [costMkt, costSvc];
-                donutChart.update('none');
-                return;
-            }
-
-            donutChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Costo Marketing (USD)', 'Costo Servicio (USD)'],
-                    datasets: [{
-                        data: [costMkt, costSvc],
-                        backgroundColor: ['rgba(56,189,248,0.85)', 'rgba(16,185,129,0.85)'],
-                        borderColor: '#0f172a',
-                        borderWidth: 3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: false,
-                    cutout: '68%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { color: '#94a3b8', font: { size: 11 }, padding: 16 }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: ctx => ' $ ' + ctx.parsed.toFixed(2) + ' USD'
-                            }
+        donutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Marketing', 'Utilidad', 'Autenticación', 'Servicio'],
+                datasets: [{
+                    data,
+                    backgroundColor: [
+                        'rgba(248,113,113,0.85)',
+                        'rgba(192,132,252,0.85)',
+                        'rgba(251,191,36,0.85)',
+                        'rgba(52,211,153,0.85)'
+                    ],
+                    borderColor: '#0f172a',
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ' $' + ctx.parsed.toFixed(2) + ' USD'
                         }
                     }
                 }
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('input[type="range"]').forEach(el => el.addEventListener('input', update));
-            update();
+            }
         });
-    </script>
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('input[type="range"]').forEach(el => el.addEventListener('input', update));
+        update();
+    });
+</script>
 </body>
 </html>
