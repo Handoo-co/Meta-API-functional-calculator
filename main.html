@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handoo Meta API - Calculadora de Costo Mensual</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
+        .card-bg { background-color: #1e293b; border: 1px solid #334155; }
+        input[type="range"] { accent-color: #3b82f6; cursor: pointer; }
+        #donut-container { position: relative; width: 100%; height: 220px; }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col items-center justify-center min-h-screen">
+
+    <div class="max-w-5xl w-full card-bg rounded-3xl p-6 shadow-2xl border border-slate-700/50">
+
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Handoo: Calculadora Meta API</h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Costo operativo mensual · WhatsApp Business API</p>
+            <p class="text-slate-300 text-sm mt-3 max-w-2xl">Ajusta cuántas personas recibirán mensajes este mes y cuántas campañas enviarás. El costo se calcula en tiempo real según las tarifas de Meta.</p>
+        </div>
+
+        <!-- KPIs principales -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-800 text-center">
+                <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-1">Conv. Marketing</p>
+                <p class="text-cyan-400 text-2xl font-bold" id="kpi-conv-mkt">0</p>
+                <p class="text-slate-500 text-[10px] mt-1">personas × campañas</p>
+            </div>
+            <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-800 text-center">
+                <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-1">Conv. Servicio</p>
+                <p class="text-emerald-400 text-2xl font-bold" id="kpi-conv-svc">0</p>
+                <p class="text-slate-500 text-[10px] mt-1">respuestas estimadas</p>
+            </div>
+            <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-800 text-center">
+                <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-1">Costo Total Mes</p>
+                <p class="text-white text-2xl font-bold" id="kpi-usd">$0.00</p>
+                <p class="text-slate-500 text-[10px] mt-1">USD</p>
+            </div>
+            <div class="bg-rose-900/20 rounded-2xl p-4 border border-rose-500/30 text-center">
+                <p class="text-rose-400 text-[10px] uppercase tracking-widest mb-1">Costo Total Mes</p>
+                <p class="text-rose-400 text-2xl font-bold" id="kpi-cop">$0</p>
+                <p class="text-slate-500 text-[10px] mt-1">COP (TRM $4.100)</p>
+            </div>
+        </div>
+
+        <!-- Gráfica + controles -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+            <!-- Dona -->
+            <div class="bg-slate-900/50 rounded-2xl border border-slate-800 p-5">
+                <h2 class="text-sm font-semibold text-slate-300 mb-3">Desglose del costo</h2>
+                <div id="donut-container">
+                    <canvas id="compositionChart"></canvas>
+                </div>
+                <div class="mt-4 grid grid-cols-2 gap-2 text-xs text-center">
+                    <div class="bg-cyan-500/10 rounded-xl p-2">
+                        <p class="text-slate-400">Costo Marketing</p>
+                        <p class="text-cyan-400 font-bold text-sm" id="detalle-mkt">$0.00 USD</p>
+                    </div>
+                    <div class="bg-emerald-500/10 rounded-xl p-2">
+                        <p class="text-slate-400">Costo Servicio</p>
+                        <p class="text-emerald-400 font-bold text-sm" id="detalle-svc">$0.00 USD</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sliders -->
+            <div class="space-y-5 bg-slate-900/50 rounded-2xl border border-slate-800 p-5">
+                <h2 class="text-sm font-semibold text-slate-300 mb-1">Parámetros del mes</h2>
+
+                <div>
+                    <div class="flex justify-between mb-1 text-xs">
+                        <label class="text-slate-300">Personas a contactar</label>
+                        <span class="font-bold text-cyan-400" id="label-personas">1.000</span>
+                    </div>
+                    <input type="range" id="personas" min="100" max="50000" step="100" value="1000" class="w-full">
+                    <div class="flex justify-between text-[10px] text-slate-600 mt-1"><span>100</span><span>50.000</span></div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between mb-1 text-xs">
+                        <label class="text-slate-300">Campañas de marketing en el mes</label>
+                        <span class="font-bold text-cyan-400" id="label-campanas">2</span>
+                    </div>
+                    <input type="range" id="campanas" min="1" max="12" step="1" value="2" class="w-full">
+                    <div class="flex justify-between text-[10px] text-slate-600 mt-1"><span>1</span><span>12</span></div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between mb-1 text-xs">
+                        <label class="text-slate-300">Tasa de respuesta esperada</label>
+                        <span class="font-bold text-emerald-400" id="label-respuesta">25%</span>
+                    </div>
+                    <input type="range" id="respuesta" min="5" max="95" step="5" value="25" class="w-full">
+                    <div class="flex justify-between text-[10px] text-slate-600 mt-1"><span>5%</span><span>95%</span></div>
+                </div>
+
+                <div class="border-t border-slate-700 pt-4 space-y-3">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-widest">Tarifas Meta (USD por conversación)</p>
+                    <div>
+                        <div class="flex justify-between mb-1 text-xs">
+                            <label class="text-slate-300">Marketing / conversación</label>
+                            <span class="font-bold text-rose-400">$<span id="label-mkt">0.05</span></span>
+                        </div>
+                        <input type="range" id="costoMkt" min="0.01" max="0.15" step="0.01" value="0.05" class="w-full">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1 text-xs">
+                            <label class="text-slate-300">Servicio / conversación</label>
+                            <span class="font-bold text-rose-400">$<span id="label-svc">0.02</span></span>
+                        </div>
+                        <input type="range" id="costoSvc" min="0.01" max="0.10" step="0.01" value="0.02" class="w-full">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nota explicativa -->
+        <div class="bg-blue-900/10 border border-blue-500/20 rounded-2xl p-4 text-xs text-slate-300 leading-relaxed">
+            <p><strong class="text-blue-400">¿Cómo se calcula?</strong> Meta cobra por conversación iniciada, no por mensaje individual.</p>
+            <p class="mt-1">→ <strong>Conversaciones de marketing</strong> = personas contactadas × número de campañas del mes.</p>
+            <p class="mt-1">→ <strong>Conversaciones de servicio</strong> = conversaciones de marketing × tasa de respuesta (cuando el cliente responde, se abre una ventana de 24h cobrada aparte).</p>
+        </div>
+    </div>
+
+    <footer class="mt-8 text-center text-slate-500 text-[10px] uppercase tracking-[0.2em] font-semibold">
+        <p>&copy; 2026 Handoo AI · <span class="text-slate-400">Desarrollado por Miguel Riveros</span></p>
+    </footer>
+
+    <script>
+        const TRM = 4100;
+        let donutChart = null;
+
+        function fmt(n) { return n.toLocaleString('es-CO'); }
+
+        function update() {
+            const personas  = parseInt(document.getElementById('personas').value);
+            const campanas  = parseInt(document.getElementById('campanas').value);
+            const respuesta = parseFloat(document.getElementById('respuesta').value) / 100;
+            const costoMkt  = parseFloat(document.getElementById('costoMkt').value);
+            const costoSvc  = parseFloat(document.getElementById('costoSvc').value);
+
+            // Labels
+            document.getElementById('label-personas').innerText  = fmt(personas);
+            document.getElementById('label-campanas').innerText  = campanas;
+            document.getElementById('label-respuesta').innerText = (respuesta * 100).toFixed(0) + '%';
+            document.getElementById('label-mkt').innerText       = costoMkt.toFixed(2);
+            document.getElementById('label-svc').innerText       = costoSvc.toFixed(2);
+
+            // Cálculos
+            const convMkt = personas * campanas;
+            const convSvc = Math.round(convMkt * respuesta);
+            const costMkt = convMkt * costoMkt;
+            const costSvc = convSvc * costoSvc;
+            const total   = costMkt + costSvc;
+
+            // KPIs
+            document.getElementById('kpi-conv-mkt').innerText = fmt(convMkt);
+            document.getElementById('kpi-conv-svc').innerText = fmt(convSvc);
+            document.getElementById('kpi-usd').innerText      = '$ ' + total.toFixed(2);
+            document.getElementById('kpi-cop').innerText      = '$ ' + fmt(Math.round(total * TRM));
+            document.getElementById('detalle-mkt').innerText  = '$ ' + costMkt.toFixed(2) + ' USD';
+            document.getElementById('detalle-svc').innerText  = '$ ' + costSvc.toFixed(2) + ' USD';
+
+            updateDonut(costMkt, costSvc);
+        }
+
+        function updateDonut(costMkt, costSvc) {
+            const ctx = document.getElementById('compositionChart').getContext('2d');
+
+            if (donutChart) {
+                donutChart.data.datasets[0].data = [costMkt, costSvc];
+                donutChart.update('none');
+                return;
+            }
+
+            donutChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Costo Marketing (USD)', 'Costo Servicio (USD)'],
+                    datasets: [{
+                        data: [costMkt, costSvc],
+                        backgroundColor: ['rgba(56,189,248,0.85)', 'rgba(16,185,129,0.85)'],
+                        borderColor: '#0f172a',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    cutout: '68%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#94a3b8', font: { size: 11 }, padding: 16 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ' $ ' + ctx.parsed.toFixed(2) + ' USD'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('input[type="range"]').forEach(el => el.addEventListener('input', update));
+            update();
+        });
+    </script>
+</body>
+</html>
